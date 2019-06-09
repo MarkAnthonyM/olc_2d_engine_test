@@ -5,4 +5,7 @@ authors = ["Mark Anthony <markanthonymartinez9@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-winapi = "0.3.7"
+
+[target.'cfg(windows)'.dependencies.winapi]
+version = "0.3"
+features = ["winuser", "wincon", "winbase"]
