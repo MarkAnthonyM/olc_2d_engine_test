@@ -41,14 +41,14 @@ fn main() {
     map += "#..............#";
     map += "################";
 
-    let mut map_slice = &map.as_bytes();
+    let mut map_slice = &map.as_bytes(); //index-able reference slice
 
     let buff_coord = wincontypes::COORD {
         X: 0,
         Y: 0,
     };
 
-    let mut window_buffer: Vec<ctypes::wchar_t> = vec!['#' as u16; buff_width * buff_height];
+    let mut window_buffer: Vec<ctypes::wchar_t> = vec!['*' as u16; buff_width * buff_height];
     let buffer_ptr = window_buffer.as_ptr();
 
     //ignore
@@ -88,14 +88,17 @@ fn main() {
                     let test_x = player_x + eye_x * distance_to_wall;
                     let test_y = player_y + eye_y * distance_to_wall;
 
+                    let test_x_con = test_x as u32;
+                    let test_y_con = test_y as u32;
+
                     //Test if ray is out of bounds
-                    if test_x < 0.0 || test_x >= MAP_WIDTH.into() || test_y < 0.0 || test_y >= MAP_HEIGHT.into() {
+                    if test_x_con < 0 || test_x_con >= MAP_WIDTH || test_y_con < 0 || test_y_con >= MAP_HEIGHT {
                         hit_wall = true; //Just set distance to maximum depth
                         distance_to_wall = depth;
                     } else {
                         // Ray is inbounds so test to see if the ray cell is a wall block
-                        let test_convert = test_y * MAP_WIDTH as f64 + test_x;
-                        let test_con = test_convert as usize;
+                        let test_convert = test_y_con * MAP_WIDTH + test_x_con;
+                        let test_con = test_convert as usize; //temporary cast for arithmetic sake
                         if map_slice[test_con] as char == '#' {
                             hit_wall = true;
                         }
@@ -104,15 +107,16 @@ fn main() {
 
                 //Calculate distance to ceiling and floor
                 let ceiling = (buff_height as f64 / 2.0) - (buff_height as f64 / distance_to_wall);
-                let floor = buff_height as f64 - ceiling;
+                let ceiling_con = ceiling as usize; //temporary cast for arithmetic sake
+                let floor = buff_height - ceiling_con;
 
                 for z in 0..buff_height {
-                    if z < ceiling as usize {
-                        window_buffer[z * buff_height + i] = '.' as u16;
-                    } else if z > ceiling as usize && z <= floor as usize {
-                        window_buffer[z * buff_height + i] = '#' as u16;
+                    if z <= ceiling as usize {
+                        window_buffer[z * buff_width + i] = ' ' as u16;
+                    } else if z > ceiling_con && z <= floor {
+                        window_buffer[z * buff_width + i] = '#' as u16;
                     } else {
-                        window_buffer[z * buff_height + i] = ' ' as u16;
+                        window_buffer[z * buff_width + i] = ' ' as u16;
                     }
                 }
             }
