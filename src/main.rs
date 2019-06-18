@@ -7,6 +7,7 @@ use winapi::shared::minwindef;
 use winapi::shared::ntdef;
 use winapi::um::{ wincon, winuser, winnt, wincontypes, winbase };
 use std::ffi::CString;
+use std::time::{ Instant };
 
 fn main() {
     let buff_width = 120;
@@ -14,7 +15,7 @@ fn main() {
 
     let player_x = 8.0;
     let player_y = 8.0;
-    let player_a = 0.0;
+    let mut player_a = 0.0;
 
     const MAP_HEIGHT: u32 = 16;
     const MAP_WIDTH: u32 = 16;
@@ -66,12 +67,37 @@ fn main() {
 
     let mut dw_bytes_written = 0;
 
+    let mut time_point_1 = Instant::now();
+    let mut time_point_2;
+
     unsafe {
         let hconsole = wincon::CreateConsoleScreenBuffer(winnt::GENERIC_READ | winnt::GENERIC_WRITE, 0, ptr::null(), wincon::CONSOLE_TEXTMODE_BUFFER, ntdef::NULL);
 
         wincon::SetConsoleActiveScreenBuffer(hconsole);
 
+
         loop {
+            time_point_2 = Instant::now();
+            let elapsed_time = time_point_2.duration_since(time_point_1);
+            let in_nano = elapsed_time.as_micros() as f64 / 100_000.0;
+            // let in_nano_con = in_nano / 100_000.0;
+            time_point_1 = time_point_2;
+            // println!("{:?}", in_nano);
+
+            //Controls
+            //Handle CCW Rotation
+            let key_trigger_a = winuser::GetAsyncKeyState('A' as i32);
+
+            let key_trigger_d = winuser::GetAsyncKeyState('D' as i32);
+
+            if key_trigger_a != 0 && key_trigger_a == -32768 {
+                player_a -= 0.1 * in_nano;
+            }
+
+            if key_trigger_d != 0 && key_trigger_d == -32768 {
+                player_a += 0.1 * in_nano;
+            }
+
             for i in 0..buff_width {
                 //For each column, calculate the projected ray angle into world space
                 let ray_angle = (player_a - player_fov / 2.0) + (i as f64 / buff_width as f64) * player_fov;
@@ -111,7 +137,7 @@ fn main() {
                 let floor = buff_height - ceiling_con;
 
                 for z in 0..buff_height {
-                    if z <= ceiling as usize {
+                    if z <= ceiling_con {
                         window_buffer[z * buff_width + i] = ' ' as u16;
                     } else if z > ceiling_con && z <= floor {
                         window_buffer[z * buff_width + i] = '#' as u16;
