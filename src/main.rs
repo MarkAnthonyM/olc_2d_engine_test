@@ -13,8 +13,8 @@ fn main() {
     let buff_width = 120;
     let buff_height = 40;
 
-    let player_x = 8.0;
-    let player_y = 8.0;
+    let mut player_x = 8.0;
+    let mut player_y = 8.0;
     let mut player_a = 0.0;
 
     const MAP_HEIGHT: u32 = 16;
@@ -87,8 +87,9 @@ fn main() {
             //Controls
             //Handle CCW Rotation
             let key_trigger_a = winuser::GetAsyncKeyState('A' as i32);
-
             let key_trigger_d = winuser::GetAsyncKeyState('D' as i32);
+            let key_trigger_w = winuser::GetAsyncKeyState('W' as i32);
+            let key_trigger_s = winuser::GetAsyncKeyState('S' as i32);
 
             if key_trigger_a != 0 && key_trigger_a == -32768 {
                 player_a -= 0.1 * in_nano;
@@ -96,6 +97,16 @@ fn main() {
 
             if key_trigger_d != 0 && key_trigger_d == -32768 {
                 player_a += 0.1 * in_nano;
+            }
+
+            if key_trigger_w != 0 && key_trigger_w == -32768 {
+                player_x += player_a.sin() * 5.0 * in_nano;
+                player_y += player_a.cos() * 5.0 * in_nano;
+            }
+
+            if key_trigger_s != 0 && key_trigger_s == -32768 {
+                player_x -= player_a.sin() * 5.0 * in_nano;
+                player_y -= player_a.cos() * 5.0 * in_nano;
             }
 
             for i in 0..buff_width {
@@ -136,11 +147,25 @@ fn main() {
                 let ceiling_con = ceiling as usize; //temporary cast for arithmetic sake
                 let floor = buff_height - ceiling_con;
 
+                let mut shade = ' ';
+
+                if distance_to_wall <= depth / 4.0 {
+                    shade = '█';
+                } else if distance_to_wall < depth / 3.0 {
+                    shade = '▓';
+                } else if distance_to_wall < depth / 2.0 {
+                    shade = '▒';
+                } else if distance_to_wall < depth {
+                    shade = '░';
+                } else {
+                    shade = ' ';
+                }
+
                 for z in 0..buff_height {
                     if z <= ceiling_con {
                         window_buffer[z * buff_width + i] = ' ' as u16;
                     } else if z > ceiling_con && z <= floor {
-                        window_buffer[z * buff_width + i] = '#' as u16;
+                        window_buffer[z * buff_width + i] = shade as u16;
                     } else {
                         window_buffer[z * buff_width + i] = ' ' as u16;
                     }
