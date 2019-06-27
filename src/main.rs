@@ -154,8 +154,8 @@ fn main() {
 
                 //Calculate distance to ceiling and floor
                 let ceiling = (buff_height as f64 / 2.0) - buff_height as f64 / distance_to_wall;
-                let ceiling_con = ceiling as usize; //temporary cast for arithmetic sake
-                let floor: isize = buff_height as isize - ceiling_con as isize;
+                let ceiling_con = ceiling as isize; //temporary cast for arithmetic sake
+                let floor: isize = buff_height as isize - ceiling as isize;
 
                 let mut shade;
 
@@ -172,9 +172,9 @@ fn main() {
                 }
 
                 for z in 0..buff_height {
-                    if z <= ceiling_con {
-                        window_buffer[z * buff_width + i] = '=' as u16;
-                    } else if z > ceiling_con && z <= floor as usize {
+                    if z as isize <= ceiling_con {
+                        window_buffer[z * buff_width + i] = ' ' as u16;
+                    } else if z as isize > ceiling_con && z <= floor as usize {
                         window_buffer[z * buff_width + i] = shade as u16;
                     } else {
                         // Shade floor based on distance
