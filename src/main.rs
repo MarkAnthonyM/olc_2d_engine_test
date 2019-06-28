@@ -125,6 +125,7 @@ fn main() {
                 // Find distance to wall
                 let mut distance_to_wall = 0.0;
                 let mut hit_wall = false;
+                let mut boundary = false;
 
                 let eye_x = ray_angle.sin(); //Unit vector for ray in player space
                 let eye_y = ray_angle.cos();
@@ -148,6 +149,31 @@ fn main() {
                         let test_con = test_convert as usize; //temporary cast for arithmetic sake
                         if map_slice[test_con] as char == '#' {
                             hit_wall = true;
+
+                            let mut p: Vec<(f64,f64)> = Vec::new(); //Stores distance and dot
+
+                            for px in 0..2 {
+                                for py in 0..2 {
+                                    let vy = test_y_con as f64 + py as f64 - player_y;
+                                    let vx = test_x_con as f64 + px as f64 - player_x;
+                                    let d = (vx * vx + vy * vy).sqrt();
+                                    let dot = (eye_x * vx / d) + (eye_y * vy / d);
+                                    p.push((d, dot));
+                                }
+
+                                //Sort pairs from closest to farthest
+                                p.sort_by_key(|k| k.0.partial_cmp(&k.1));
+
+                                let bound = 0.02;
+
+                                if p[0].1.acos() < bound {
+                                    boundary = true;
+                                }
+
+                                if p[1].1.acos() < bound {
+                                    boundary = true;
+                                }
+                            }
                         }
                     }
                 }
@@ -160,7 +186,7 @@ fn main() {
                 let mut shade;
 
                 if distance_to_wall <= depth / 4.0 {
-                    shade = '█';
+                    shade = '█'; // Very close
                 } else if distance_to_wall < depth / 3.0 {
                     shade = '▓';
                 } else if distance_to_wall < depth / 2.0 {
@@ -168,6 +194,10 @@ fn main() {
                 } else if distance_to_wall < depth {
                     shade = '░';
                 } else {
+                    shade = ' '; // Very far away
+                }
+
+                if boundary {
                     shade = ' ';
                 }
 
