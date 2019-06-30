@@ -56,8 +56,8 @@ fn main() {
     let mut time_point_1 = Instant::now();
     let mut time_point_2;
 
-    let mut index_val = player_y as u32 * MAP_WIDTH + player_x as u32;
-    let mut index_val_con = index_val as usize;
+    let mut index_val;
+    let mut index_val_con;
 
     unsafe {
         let hconsole = wincon::CreateConsoleScreenBuffer(winnt::GENERIC_READ | winnt::GENERIC_WRITE, 0, ptr::null(), wincon::CONSOLE_TEXTMODE_BUFFER, ntdef::NULL);
@@ -113,7 +113,7 @@ fn main() {
                 }
             }
 
-            //Displays player coordinates on screen
+            //Display player coordinates on screen
             let w = format!("X: {:.2} Y: {:.2} A: {:.2}", &player_x, &player_y, &player_a);
             let w_string = U16CString::from_str(w).unwrap();
             let s_ptr = w_string.as_ptr();
@@ -164,7 +164,7 @@ fn main() {
                                 //Sort pairs from closest to farthest
                                 p.sort_by_key(|k| k.0.partial_cmp(&k.1));
 
-                                let bound = 0.02;
+                                let bound = 0.005;
 
                                 if p[0].1.acos() < bound {
                                     boundary = true;
@@ -226,6 +226,16 @@ fn main() {
             }
 
             winuser::wsprintfW(buff_sec_ptr, s_ptr);
+
+            // Display mini map
+            for nx in 0..MAP_WIDTH {
+                for ny in 0..MAP_WIDTH {
+                    let mini_map = (ny + 1) * buff_width as u32 + nx;
+                    window_buffer[mini_map as usize] = map_slice[ny as usize * MAP_WIDTH as usize + nx as usize].into();
+                }
+            }
+
+            window_buffer[(player_y as usize + 1) * buff_width + player_x as usize] = 'X' as u16;
 
             wincon::WriteConsoleOutputCharacterW(hconsole, buffer_ptr, 120 * 40, buff_coord, &mut dw_bytes_written);
         }
